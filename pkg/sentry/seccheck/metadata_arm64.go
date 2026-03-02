@@ -79,11 +79,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(64, "write", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(65, "readv", []FieldDesc{
@@ -91,11 +99,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(66, "writev", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(67, "pread64", []FieldDesc{
@@ -103,11 +119,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(68, "pwrite64", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(69, "preadv", []FieldDesc{
@@ -115,11 +139,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(70, "pwritev", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(74, "signalfd4", []FieldDesc{
@@ -195,11 +227,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(287, "pwritev2", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 

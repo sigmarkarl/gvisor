@@ -25,11 +25,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(1, "write", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(2, "open", nil)
@@ -44,11 +52,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(18, "pwrite64", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(19, "readv", []FieldDesc{
@@ -56,11 +72,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(20, "writev", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(22, "pipe", nil)
@@ -195,11 +219,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(296, "pwritev", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 	addSyscallPoint(302, "prlimit64", nil)
@@ -218,11 +250,19 @@ func archInit() {
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
 		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
+		},
 	})
 	addSyscallPoint(328, "pwritev2", []FieldDesc{
 		{
 			ID:   FieldSyscallPath,
 			Name: "fd_path",
+		},
+		{
+			ID:   FieldSyscallPayload,
+			Name: "payload",
 		},
 	})
 

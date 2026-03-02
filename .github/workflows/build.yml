@@ -4,6 +4,11 @@ name: CI
   push:
     branches:
       - "*"
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,24 +16,71 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
 
     steps:
-    - name: bazel
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Install dependencies
       run: |
         export DEBIAN_FRONTEND=noninteractive
         sudo -E apt update && sudo -E apt install -y make
 
-    - name: Checkout
-      uses: actions/checkout@v5
-
-    - name: build
+    - name: Build runsc
       run: |
-          mkdir -p bin
-          make copy TARGETS=runsc DESTINATION=bin/
+        mkdir -p bin
+        make copy TARGETS=runsc DESTINATION=bin/
+        mv bin/runsc bin/runsc-linux-${{ matrix.arch }}
 
-    - name: Upload runsc
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-          name: runsc
-          path: bin/runsc
+        name: runsc-linux-${{ matrix.arch }}
+        path: bin/runsc-linux-${{ matrix.arch }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: bin/
+        merge-multiple: true
+
+    - name: Update latest release
+      if: github.ref == 'refs/heads/master'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release delete latest --cleanup-tag --yes 2>/dev/null || true
+        gh release create latest \
+          --repo ${{ github.repository }} \
+          --target ${{ github.sha }} \
+          --title "Latest Build ($(date -u +%Y-%m-%dT%H:%M:%SZ))" \
+          --prerelease \
+          --notes "Built from commit ${{ github.sha }}" \
+          bin/runsc-linux-amd64 \
+          bin/runsc-linux-arm64
+
+    - name: Create versioned release
+      if: startsWith(github.ref, 'refs/tags/v')
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release create ${{ github.ref_name }} \
+          --repo ${{ github.repository }} \
+          --title "Release ${{ github.ref_name }}" \
+          --generate-notes \
+          bin/runsc-linux-amd64 \
+          bin/runsc-linux-arm64

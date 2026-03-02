@@ -68,6 +68,40 @@ func getIovecSize(t *kernel.Task, addr hostarch.Addr, iovcnt int) uint64 {
 	return uint64(dst.NumBytes())
 }
 
+const maxPayloadBytes = 8192
+
+// capturePayload copies up to maxPayloadBytes from the user buffer at addr.
+// It is only called for exit events with a positive return value.
+func capturePayload(t *kernel.Task, addr hostarch.Addr, size int64) []byte {
+	if addr == 0 || size <= 0 {
+		return nil
+	}
+	n := size
+	if n > maxPayloadBytes {
+		n = maxPayloadBytes
+	}
+	buf := make([]byte, n)
+	copied, err := t.CopyInBytes(addr, buf)
+	if err != nil || copied == 0 {
+		return nil
+	}
+	return buf[:copied]
+}
+
+// captureIovecPayload copies up to maxPayloadBytes from the first iovec entry.
+func captureIovecPayload(t *kernel.Task, iovecAddr hostarch.Addr, size int64) []byte {
+	if iovecAddr == 0 || size <= 0 {
+		return nil
+	}
+	// Read the first iovec struct: {base uintptr, len uintptr}
+	var iov [16]byte
+	if _, err := t.CopyInBytes(iovecAddr, iov[:]); err != nil {
+		return nil
+	}
+	base := hostarch.Addr(hostarch.ByteOrder.Uint64(iov[0:8]))
+	return capturePayload(t, base, size)
+}
+
 // PointOpen converts open(2) syscall to proto.
 func PointOpen(t *kernel.Task, _ seccheck.FieldSet, cxtData *pb.ContextData, info kernel.SyscallInfo) (proto.Message, pb.MessageType) {
 	p := &pb.Open{
@@ -171,6 +205,9 @@ func PointRead(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextData
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
 	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = capturePayload(t, info.Args[1].Pointer(), int64(info.Rval))
+	}
 
 	p.Exit = newExitMaybe(info)
 
@@ -190,6 +227,9 @@ func PointPread64(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextD
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
 	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = capturePayload(t, info.Args[1].Pointer(), int64(info.Rval))
+	}
 
 	p.Exit = newExitMaybe(info)
 
@@ -206,6 +246,9 @@ func PointReadv(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextDat
 	}
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
+	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = captureIovecPayload(t, info.Args[1].Pointer(), int64(info.Rval))
 	}
 
 	p.Exit = newExitMaybe(info)
@@ -225,6 +268,9 @@ func PointPreadv(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextDa
 	}
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
+	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = captureIovecPayload(t, info.Args[1].Pointer(), int64(info.Rval))
 	}
 
 	p.Exit = newExitMaybe(info)
@@ -246,6 +292,9 @@ func PointPreadv2(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextD
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
 	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = captureIovecPayload(t, info.Args[1].Pointer(), int64(info.Rval))
+	}
 
 	p.Exit = newExitMaybe(info)
 
@@ -262,6 +311,9 @@ func PointWrite(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextDat
 	}
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
+	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = capturePayload(t, info.Args[1].Pointer(), int64(info.Rval))
 	}
 
 	p.Exit = newExitMaybe(info)
@@ -282,6 +334,9 @@ func PointPwrite64(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.Context
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
 	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = capturePayload(t, info.Args[1].Pointer(), int64(info.Rval))
+	}
 
 	p.Exit = newExitMaybe(info)
 
@@ -298,6 +353,9 @@ func PointWritev(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextDa
 	}
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
+	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = captureIovecPayload(t, info.Args[1].Pointer(), int64(info.Rval))
 	}
 
 	p.Exit = newExitMaybe(info)
@@ -318,6 +376,9 @@ func PointPwritev(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.ContextD
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
 	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = captureIovecPayload(t, info.Args[1].Pointer(), int64(info.Rval))
+	}
 
 	p.Exit = newExitMaybe(info)
 
@@ -337,6 +398,9 @@ func PointPwritev2(t *kernel.Task, fields seccheck.FieldSet, cxtData *pb.Context
 	}
 	if fields.Local.Contains(seccheck.FieldSyscallPath) {
 		p.FdPath = getFilePath(t, int32(p.Fd))
+	}
+	if fields.Local.Contains(seccheck.FieldSyscallPayload) && info.Exit && info.Rval > 0 {
+		p.Payload = captureIovecPayload(t, info.Args[1].Pointer(), int64(info.Rval))
 	}
 
 	p.Exit = newExitMaybe(info)

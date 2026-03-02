@@ -64,6 +64,7 @@ message Read {
   bool has_offset = 7;
   int64 offset = 8;
   uint32 flags = 9;
+  bytes payload = 10;
 }
 
 message Write {
@@ -76,6 +77,7 @@ message Write {
   bool has_offset = 7;
   int64 offset = 8;
   uint32 flags = 9;
+  bytes payload = 10;
 }
 
 message Connect {

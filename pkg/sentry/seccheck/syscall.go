@@ -69,6 +69,14 @@ const (
 	FieldSyscallExecveEnvv = FieldSyscallPath + 1
 )
 
+// Fields for read/write syscalls.
+const (
+	// FieldSyscallPayload is an optional field to collect the first bytes of
+	// the read/write buffer. Start after FieldSyscallPath because read/write
+	// can also collect path from FD.
+	FieldSyscallPayload = FieldSyscallPath + 1
+)
+
 // GetPointForSyscall translates the syscall number to the corresponding Point.
 func GetPointForSyscall(typ SyscallType, sysno uintptr) Point {
 	return Point(sysno)*Point(syscallTypesCount) + Point(typ) + pointLengthBeforeSyscalls
